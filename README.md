@@ -3,13 +3,13 @@
 ## Installation
 
 Create conda environment:
-'''shell
+```shell
 conda create -n sse_rydberg python=3.9
 conda activate sse_rydberg
-'''
+```
 
 Install the requirements:
-'''shell
+```shell
 pip install -e .
-'''
+```
 
