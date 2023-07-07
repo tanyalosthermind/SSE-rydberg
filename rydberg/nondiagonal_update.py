@@ -1,9 +1,12 @@
 import numpy as np
 from numba import njit
+from rydberg.assets import njit_kwargs
 from rydberg.configuration import operator_to_bond, vec_min
+from numba import config
+from rydberg.assets import disable_jit
+config.DISABLE_JIT = disable_jit
 
-
-@njit
+@njit(**njit_kwargs)
 def create_linked_vertex_list(spins, op_string):
     n_sites = spins.shape[0]
     Lx = np.int32(n_sites**0.5)
@@ -92,7 +95,7 @@ def create_linked_vertex_list(spins, op_string):
     #first_vertex_at_site = np.array(first_vertex_at_site, dtype = np.intp)
     return vertex_list, first_vertex_at_site
 
-@njit
+@njit(**njit_kwargs)
 def change_type(v0, op_string, n_sites):
     p = v0 // 4
     if op_string[p] < 2 * n_sites and op_string[p] % 2 != 0:
@@ -100,7 +103,7 @@ def change_type(v0, op_string, n_sites):
     elif op_string[p] < 2 * n_sites and op_string[p] % 2 == 0:
         op_string[p] += 1
         
-@njit
+@njit(**njit_kwargs)
 def clusterupdate(spins, op_string, vertex_list, first_vertex_at_site, V_i, C_i):
     n_sites = spins.shape[0]
     Lx = np.int32(n_sites**0.5)
@@ -191,7 +194,7 @@ def clusterupdate(spins, op_string, vertex_list, first_vertex_at_site, V_i, C_i)
             vec = vec_min(s1, s2, Lx, Ly)
             db = V_i[vec] / 2
             nc = color[4 * p]
-            #print("spins = ", spins[s1], " ", spins[s2])
+            # # print("spins = ", spins[s1], " ", spins[s2])
             if spins[s1] == -1 and spins[s2] == -1:
                 f_p[nc - 1][0] *=  - V_i[vec] + 2 * db + C_i[vec] #flipped
                 f_p[nc - 1][1] *=  C_i[vec] #not flipped
@@ -207,7 +210,7 @@ def clusterupdate(spins, op_string, vertex_list, first_vertex_at_site, V_i, C_i)
                 spins[s1] = - spins[s1]
     
     for i_nc in range(nc1):
-        #print("w' = ", f_p[i_nc][0], " w = ", f_p[i_nc][1])
+        # # print("w' = ", f_p[i_nc][0], " w = ", f_p[i_nc][1])
         w = f_p[i_nc][0] / f_p[i_nc][1]
         if abs(w - 1.0) < 0.00000001:
             w = 0.5
@@ -239,7 +242,7 @@ def clusterupdate(spins, op_string, vertex_list, first_vertex_at_site, V_i, C_i)
             if np.random.rand() < 0.5:
                 spins[i] = - spins[i]
 
-@njit
+@njit(**njit_kwargs)
 def cluster_update(spins, op_string, V_i, C_i):
     vertex_list, first_vertex_at_site = create_linked_vertex_list(spins, op_string)
     #vertex_list = np.array(vertex_list, dtype = np.intp)

@@ -1,29 +1,28 @@
 import numpy as np
 from numba import njit
+from rydberg.assets import njit_kwargs
 import math
 # import random
 # from collections import Countera = 1.0
-
-a = 1.0
-Rb = 1.2
-d = 1.1
-Omega = 2.
+from numba import config
+from rydberg.assets import disable_jit, a, Rb, d, Omega
+config.DISABLE_JIT = disable_jit
 
 
-@njit
+@njit(**njit_kwargs)
 def site(x, y, Lx, Ly):
     # TODO: generalize to the rectangular case
     return y * Lx + x
 
-@njit
+@njit(**njit_kwargs)
 def site_to_xy(site, Lx, Ly):
     # TODO: generalize to the rectangular case
     xy = np.zeros(2)
-    xy[0] = site%Lx
-    xy[1] = site//Lx
+    xy[0] = site % Lx
+    xy[1] = site // Lx
     return xy
 
-@njit
+@njit(**njit_kwargs)
 def bond_to_operator(s0, s1, Lx, Ly):
     n_sites = Lx * Ly
     k = 2 * n_sites - 1
@@ -36,7 +35,7 @@ def bond_to_operator(s0, s1, Lx, Ly):
                     op = k
     return op
 
-@njit
+@njit(**njit_kwargs)
 def operator_to_bond(op, Lx, Ly):
     n_sites = Lx * Ly
     bond = np.zeros(2, np.intp)
@@ -55,7 +54,7 @@ def operator_to_bond(op, Lx, Ly):
     return bond
 
 
-@njit
+@njit(**njit_kwargs)
 def distance_pbc(s0, s1, Lx, Ly):
     xy_0 = site_to_xy(s0, Lx, Ly)
     xy_1 = site_to_xy(s1, Lx, Ly)
@@ -72,7 +71,7 @@ def distance_pbc(s0, s1, Lx, Ly):
     dist = math.hypot(dx, dy)
     return dist
 
-@njit
+@njit(**njit_kwargs)
 def vec_min(s0, s1, Lx: int, Ly: int):
     xy_0 = site_to_xy(s0, Lx, Ly)
     xy_1 = site_to_xy(s1, Lx, Ly)
@@ -101,7 +100,7 @@ def vec_min(s0, s1, Lx: int, Ly: int):
     return int(vec_list[int(dx)][int(dy)])
 
 
-@njit
+@njit(**njit_kwargs)
 def potential(s0, s1, Lx, Ly):
     dist = distance_pbc(s0, s1, Lx, Ly)
     if dist == 0.0:
@@ -110,11 +109,11 @@ def potential(s0, s1, Lx, Ly):
         return 0.0
     else:
         rij = dist / a
-        #print("rij = ", rij)
+        # # print("rij = ", rij)
         return (Rb / rij) ** 6
 
 
-@njit
+@njit(**njit_kwargs)
 def init_SSE_square(Lx, Ly):
     n_sites = Lx * Ly
     spins = 2 * np.mod(np.random.permutation(n_sites), 2) - 1
@@ -122,7 +121,7 @@ def init_SSE_square(Lx, Ly):
     return spins, op_string
 
 
-@njit
+@njit(**njit_kwargs)
 def V_i(n_sites):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
@@ -137,7 +136,7 @@ def V_i(n_sites):
     return Vi
 
 
-@njit
+@njit(**njit_kwargs)
 def C_i(n_sites):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
@@ -151,12 +150,12 @@ def C_i(n_sites):
             Vi = potential(i, j, Lx, Ly)
             #db = d / (n_sites - 1);
             db = Vi / 2
-            #print("db = ", db, " Vi = ", Vi, " 2 * db - Vi = ", 2 * db - Vi)
+            # # print("db = ", db, " Vi = ", Vi, " 2 * db - Vi = ", 2 * db - Vi)
             Ci[vec] = abs(min(0.0, min(db, 2 * db - Vi)))
     return Ci
 
 
-@njit
+@njit(**njit_kwargs)
 def init_prob_2d(n_sites):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
@@ -180,7 +179,7 @@ def init_prob_2d(n_sites):
     return prob_dist
 
 
-@njit
+@njit(**njit_kwargs)
 def cumulative(n_sites, P_ij):
     # P_cumulfirst = np.zeros(n_sites)
     # sum_by_i = [sum(row) for row in P_ij]
@@ -191,7 +190,7 @@ def cumulative(n_sites, P_ij):
     P_cumulfirst = sum(P_ij[0]) * np.ones(n_sites)
     return P_cumulfirst
 
-@njit
+@njit(**njit_kwargs)
 def binary_search_sample(cumulative_probs, target):
     left = 0
     right = len(cumulative_probs) - 1
@@ -206,7 +205,7 @@ def binary_search_sample(cumulative_probs, target):
 
     return left
 
-@njit
+@njit(**njit_kwargs)
 def sample_from_distribution(probs):
     cumulative_probs = np.cumsum(probs)
 
@@ -214,7 +213,7 @@ def sample_from_distribution(probs):
     cumulative_probs /= total_prob
 
     target = np.random.rand()
-    #print("target = ", target)
+    # # print("target = ", target)
 
     sampled_index = binary_search_sample(cumulative_probs, target)
 

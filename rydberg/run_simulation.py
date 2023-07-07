@@ -1,9 +1,31 @@
 import numpy as np
 from numba import njit
+from rydberg.assets import njit_kwargs
 from rydberg.measurement import thermalize, measure, get_staggering
 from rydberg.configuration import V_i, C_i, cumulative, init_prob_2d, init_SSE_square
+from rydberg.configuration import vec_min, Omega
+from numba import config
+from rydberg.assets import disable_jit
+config.DISABLE_JIT = disable_jit
 
-@njit
+@njit(**njit_kwargs)
+def init_c(spins, C_i, Omega=Omega):
+    n_sites = spins.shape[0]
+    Lx = np.int32(n_sites**0.5)
+    Ly = np.int32(n_sites**0.5)
+    #c = np.zeros(n_sites * n_sites, dtype = np.float64)
+    c = 0
+
+    for i in range(n_sites):
+        for j in range(i, n_sites):
+            vec = vec_min(i, j, Lx, Ly)
+            if i != j:
+                c += C_i[vec]
+            elif i == j:
+                c += Omega * 0.5
+    return c
+
+@njit(**njit_kwargs)
 def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10):
     spins, op_string = init_SSE_square(Lx, Ly)
     stag = get_staggering(Lx, Ly)
@@ -17,8 +39,10 @@ def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10):
     Ns_Nerrs = np.zeros((n_betas, 2))
     Ms_Merrs = np.zeros((n_betas, 2))
     i_beta = 0
+    c_sum = init_c(spins, Ci)
+    print("added constant", c_sum)
     for beta in betas:
-        # print("beta = {beta:.3f}".format(beta=beta), flush=True)
+        # # print("beta = {beta:.3f}".format(beta=beta), flush=True)
         print("beta = ", beta)
         op_string = thermalize(spins, op_string, Vi, Ci, Pij, Pc, beta, n_updates_measure//10)#n_updates_measure//10
         Es = np.zeros(n_bins)
@@ -27,7 +51,7 @@ def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10):
         for n_bin in range(n_bins):
             ns, nums, ms = measure(spins, op_string, Vi, Ci, Pij, Pc, stag, beta, n_updates_measure)
             n_mean = np.mean(ns)
-            E = (-n_mean/beta) / n_sites
+            E = (c_sum - n_mean/beta) / n_sites
             num_mean = np.mean(nums)
             N = num_mean / n_sites
             #ms_mean = np.mean(np.abs(ms))
