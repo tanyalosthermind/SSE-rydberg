@@ -1,10 +1,10 @@
 import numpy as np
 from numba import njit
-from rydberg.assets import njit_kwargs
 from rydberg.configuration import sample_from_distribution, vec_min, bond_to_operator, operator_to_bond
 from numba import config
-from rydberg.assets import disable_jit
+from rydberg.assets import njit_kwargs, disable_jit
 config.DISABLE_JIT = disable_jit
+
 
 @njit(**njit_kwargs)
 def diagonal_update(spins, op_string, Vi, Ci, Pij, Pc, beta):
@@ -47,7 +47,7 @@ def diagonal_update(spins, op_string, Vi, Ci, Pij, Pc, beta):
                     elif spins[s0] == 1 and spins[s1] == 1:
                         W_actual = - V + 2 * db + C
                     W_sampled = Pij[s0][s1]
-                    # # print("sampled W = ", W_sampled, " actual W = ", W_actual, "for spins = ", spins[s0], " ", spins[s1])
+                    print("sampled W = ", W_sampled, " actual W = ", W_actual, "for spins = ", spins[s0], " ", spins[s1])
                     ratio = W_actual / W_sampled
                     if np.random.rand() < ratio:
                         op_string[p] = bond_to_operator(s0, s1, Lx, Ly)

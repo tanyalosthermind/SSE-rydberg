@@ -6,6 +6,7 @@ from numba import config
 from rydberg.assets import disable_jit
 config.DISABLE_JIT = disable_jit
 
+
 @njit(**njit_kwargs)
 def create_linked_vertex_list(spins, op_string):
     n_sites = spins.shape[0]

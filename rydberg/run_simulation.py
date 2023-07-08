@@ -1,15 +1,15 @@
 import numpy as np
 from numba import njit
-from rydberg.assets import njit_kwargs
 from rydberg.measurement import thermalize, measure, get_staggering
 from rydberg.configuration import V_i, C_i, cumulative, init_prob_2d, init_SSE_square
-from rydberg.configuration import vec_min, Omega
+from rydberg.configuration import vec_min
 from numba import config
-from rydberg.assets import disable_jit
+from rydberg.assets import njit_kwargs, disable_jit
 config.DISABLE_JIT = disable_jit
 
+
 @njit(**njit_kwargs)
-def init_c(spins, C_i, Omega=Omega):
+def init_c(spins, C_i, Omega):
     n_sites = spins.shape[0]
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
@@ -25,21 +25,23 @@ def init_c(spins, C_i, Omega=Omega):
                 c += Omega * 0.5
     return c
 
+
 @njit(**njit_kwargs)
-def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10):
+def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10, 
+                   a=1.0, Rb=1.2, d=1.1, Omega=0.0):
     spins, op_string = init_SSE_square(Lx, Ly)
     stag = get_staggering(Lx, Ly)
     n_sites = len(spins)
-    Vi = V_i(n_sites)
-    Ci = C_i(n_sites)
-    Pij = init_prob_2d(n_sites)
+    Vi = V_i(n_sites, a, Rb)
+    Ci = C_i(n_sites, a, Rb)
+    Pij = init_prob_2d(n_sites, a, Rb, Omega)
     Pc = cumulative(n_sites, Pij)
     n_betas = betas.shape[0]
     Es_Eerrs = np.zeros((n_betas, 2))
     Ns_Nerrs = np.zeros((n_betas, 2))
     Ms_Merrs = np.zeros((n_betas, 2))
     i_beta = 0
-    c_sum = init_c(spins, Ci)
+    c_sum = init_c(spins, Ci, Omega)
     print("added constant", c_sum)
     for beta in betas:
         # # print("beta = {beta:.3f}".format(beta=beta), flush=True)

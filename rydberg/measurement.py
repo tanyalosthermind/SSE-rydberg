@@ -1,12 +1,12 @@
 from numba import njit
 import numpy as np
-from rydberg.assets import njit_kwargs
 from rydberg.diagonal_update import diagonal_update
 from rydberg.nondiagonal_update import cluster_update
 from rydberg.configuration import site
 from numba import config
-from rydberg.assets import disable_jit
+from rydberg.assets import njit_kwargs, disable_jit
 config.DISABLE_JIT = disable_jit
+
 
 @njit(**njit_kwargs)
 def resize(a, new_size):

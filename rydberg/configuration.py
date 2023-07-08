@@ -1,11 +1,10 @@
 import numpy as np
 from numba import njit
-from rydberg.assets import njit_kwargs
 import math
 # import random
 # from collections import Countera = 1.0
 from numba import config
-from rydberg.assets import disable_jit, a, Rb, d, Omega
+from rydberg.assets import njit_kwargs, disable_jit
 config.DISABLE_JIT = disable_jit
 
 
@@ -101,7 +100,7 @@ def vec_min(s0, s1, Lx: int, Ly: int):
 
 
 @njit(**njit_kwargs)
-def potential(s0, s1, Lx, Ly):
+def potential(s0, s1, Lx, Ly, a, Rb):
     dist = distance_pbc(s0, s1, Lx, Ly)
     if dist == 0.0:
         raise ValueError("PBC distance zero in potential!")
@@ -122,7 +121,7 @@ def init_SSE_square(Lx, Ly):
 
 
 @njit(**njit_kwargs)
-def V_i(n_sites):
+def V_i(n_sites, a, Rb):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
     # TODO: check that operations are performermed in the right order.
@@ -132,12 +131,12 @@ def V_i(n_sites):
     for i in range(n_sites):
         for j in range(i + 1, n_sites):
             vec = vec_min(i, j, Lx, Ly)
-            Vi[vec] = potential(i, j, Lx, Ly)
+            Vi[vec] = potential(i, j, Lx, Ly, a, Rb)
     return Vi
 
 
 @njit(**njit_kwargs)
-def C_i(n_sites):
+def C_i(n_sites, a, Rb):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
     # TODO: check that operations are performermed in the right order.
@@ -147,7 +146,7 @@ def C_i(n_sites):
     for i in range(n_sites):
         for j in range(i + 1, n_sites):
             vec = vec_min(i, j, Lx, Ly)
-            Vi = potential(i, j, Lx, Ly)
+            Vi = potential(i, j, Lx, Ly, a, Rb)
             #db = d / (n_sites - 1);
             db = Vi / 2
             # # print("db = ", db, " Vi = ", Vi, " 2 * db - Vi = ", 2 * db - Vi)
@@ -156,7 +155,7 @@ def C_i(n_sites):
 
 
 @njit(**njit_kwargs)
-def init_prob_2d(n_sites):
+def init_prob_2d(n_sites, a, Rb, Omega):
     Lx = np.int32(n_sites**0.5)
     Ly = np.int32(n_sites**0.5)
     prob_dist = np.zeros((n_sites, n_sites))
@@ -167,7 +166,7 @@ def init_prob_2d(n_sites):
             if i == j:
                 prob_dist[i][j] = Omega * 0.5
             else:
-                Vi = potential(i, j, Lx, Ly)
+                Vi = potential(i, j, Lx, Ly, a, Rb)
                 db = Vi / 2
                 Ci = abs(min(0.0, min(db, 2 * db - Vi)))
                 W1 = Ci
