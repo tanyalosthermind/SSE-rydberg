@@ -9,7 +9,7 @@ config.DISABLE_JIT = disable_jit
 import fire
 
 
-# TODO: why is d never used?
+# 
 def main(
     Lx=4,
     Ly=4,

@@ -174,7 +174,8 @@ def init_prob_2d(n_sites, a, Rb, Omega):
                 W3 = db + Ci
                 W4 = - Vi + 2 * db + Ci
                 prob_dist[i][j] = max(W1, max(W2, max(W3, W4)))
-                prob_dist[j][i] = 0.0
+                prob_dist[j][i] = max(W1, max(W2, max(W3, W4)))
+                #prob_dist[j][i] = 0.0
     return prob_dist
 
 

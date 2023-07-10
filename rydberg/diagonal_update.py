@@ -13,7 +13,8 @@ def diagonal_update(spins, op_string, Vi, Ci, Pij, Pc, beta):
     Ly = np.int32(n_sites**0.5)
     M = op_string.shape[0]
     n = np.sum(op_string != -1)
-    norm = np.sum(Pij)
+    #norm = np.sum(Pij)
+    norm = np.triu(Pij).sum()
     # # print("norm = ", norm)
     prob_ratio = norm * beta
     
@@ -47,7 +48,7 @@ def diagonal_update(spins, op_string, Vi, Ci, Pij, Pc, beta):
                     elif spins[s0] == 1 and spins[s1] == 1:
                         W_actual = - V + 2 * db + C
                     W_sampled = Pij[s0][s1]
-                    print("sampled W = ", W_sampled, " actual W = ", W_actual, "for spins = ", spins[s0], " ", spins[s1])
+                    #print("sampled W = ", W_sampled, " actual W = ", W_actual, "for spins = ", spins[s0], " ", spins[s1])
                     ratio = W_actual / W_sampled
                     if np.random.rand() < ratio:
                         op_string[p] = bond_to_operator(s0, s1, Lx, Ly)

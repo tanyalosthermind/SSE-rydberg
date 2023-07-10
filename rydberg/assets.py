@@ -4,4 +4,4 @@ njit_kwargs = {
     "fastmath": True,
 }
 # whether or not to disable jit
-disable_jit = True
+disable_jit = False
