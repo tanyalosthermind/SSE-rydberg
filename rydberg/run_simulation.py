@@ -28,7 +28,7 @@ def init_c(spins, C_i, Omega):
 
 @njit(**njit_kwargs)
 def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10, 
-                   a=1.0, Rb=1.2, d=1.1, Omega=0.0):
+                   a=1.0, Rb=1.2, d=1.1, Omega=0.0, line=True, line_step=50):
     spins, op_string = init_SSE_square(Lx, Ly)
     stag = get_staggering(Lx, Ly)
     n_sites = len(spins)
@@ -46,12 +46,12 @@ def run_simulation(Lx, Ly, betas, n_updates_measure=10000, n_bins=10,
     for beta in betas:
         # # print("beta = {beta:.3f}".format(beta=beta), flush=True)
         print("beta = ", beta)
-        op_string = thermalize(spins, op_string, Vi, Ci, Pij, Pc, beta, n_updates_measure//10)#n_updates_measure//10
+        op_string = thermalize(spins, op_string, Vi, Ci, Pij, Pc, beta, n_updates_measure//10, line, line_step)#n_updates_measure//10
         Es = np.zeros(n_bins)
         Ns = np.zeros(n_bins)
         Ms = np.zeros(n_bins)
         for n_bin in range(n_bins):
-            ns, nums, ms = measure(spins, op_string, Vi, Ci, Pij, Pc, stag, beta, n_updates_measure)
+            ns, nums, ms = measure(spins, op_string, Vi, Ci, Pij, Pc, stag, beta, n_updates_measure, line, line_step)
             n_mean = np.mean(ns)
             E = (c_sum - n_mean/beta) / n_sites
             num_mean = np.mean(nums)

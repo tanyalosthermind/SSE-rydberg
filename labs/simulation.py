@@ -19,11 +19,13 @@ def main(
     a=1.0,
     Rb=1.2,
     d=1.1,
-    Omega=0.0,
+    Omega=6.0,
+    line=False,
+    line_step = 50
 ):
     start = time.time()
     Es_Eerrs, Ns_Nerrs, Ms_Merrs = run_simulation(Lx, Ly, betas=np.array([beta,]), n_updates_measure=n_updates_measure, 
-                                                  n_bins=n_bins, a=a, Rb=Rb, d=d, Omega=Omega)
+                                                  n_bins=n_bins, a=a, Rb=Rb, d=d, Omega=Omega, line=line, line_step=line_step)
     total_time = time.time() - start
 
     print(f"Execution time = {round(total_time, 2)} seconds.")

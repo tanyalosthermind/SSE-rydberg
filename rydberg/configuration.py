@@ -174,8 +174,8 @@ def init_prob_2d(n_sites, a, Rb, Omega):
                 W3 = db + Ci
                 W4 = - Vi + 2 * db + Ci
                 prob_dist[i][j] = max(W1, max(W2, max(W3, W4)))
-                prob_dist[j][i] = max(W1, max(W2, max(W3, W4)))
-                #prob_dist[j][i] = 0.0
+                #prob_dist[j][i] = max(W1, max(W2, max(W3, W4)))
+                prob_dist[j][i] = 0.0
     return prob_dist
 
 
@@ -187,7 +187,8 @@ def cumulative(n_sites, P_ij):
     # for i in range(n_sites):
     #     P_cumulfirst[i] = qi
 
-    P_cumulfirst = sum(P_ij[0]) * np.ones(n_sites)
+    #P_cumulfirst = sum(P_ij[0]) * np.ones(n_sites)
+    P_cumulfirst = (1 / n_sites) * np.ones(n_sites)
     return P_cumulfirst
 
 @njit(**njit_kwargs)

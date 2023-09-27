@@ -15,10 +15,10 @@ def resize(a, new_size):
     return new
 
 @njit(**njit_kwargs)
-def thermalize(spins, op_string, V_i, C_i, Pij, Pc, beta, n_updates_warmup):
+def thermalize(spins, op_string, V_i, C_i, Pij, Pc, beta, n_updates_warmup, line, line_step):
     for _ in range(n_updates_warmup):
         n = diagonal_update(spins, op_string, V_i, C_i, Pij, Pc, beta)
-        cluster_update(spins, op_string, V_i, C_i)
+        cluster_update(spins, op_string, V_i, C_i, line, line_step)
         print("n = ", n)
         M_old = len(op_string)
         M_new = n + n // 3
@@ -42,7 +42,7 @@ def staggered_magnetization(spins, stag):
     return np.sum(spins * stag * 0.5)
 
 @njit(**njit_kwargs)
-def measure(spins, op_string, V_i, C_i, Pij, Pc, stag, beta, n_updates_measure):
+def measure(spins, op_string, V_i, C_i, Pij, Pc, stag, beta, n_updates_measure, line, line_step):
     ns = np.zeros(n_updates_measure)
     nums = np.zeros(n_updates_measure)
     ms = np.zeros(n_updates_measure)
@@ -51,7 +51,7 @@ def measure(spins, op_string, V_i, C_i, Pij, Pc, stag, beta, n_updates_measure):
         print("n = ", ns[idx])
         #ms[idx] = np.abs(staggered_magnetization(spins, stag))
         # # print("absolute magnetization = ", ms[idx])
-        cluster_update(spins, op_string, V_i, C_i)
+        cluster_update(spins, op_string, V_i, C_i, line, line_step)
         ms[idx] = np.abs(staggered_magnetization(spins, stag))
         nums[idx] = np.sum(spins == 1)
         #num = spins.count(1)
